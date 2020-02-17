@@ -146,4 +146,16 @@ describe('SQLite encodeQuery', () => {
       `select "tasks".* from "tasks" where "tasks"."_status" is not 'deleted' order by "tasks"."sortable_column" desc limit 100 offset 200`,
     )
   })
+  it('encodes JOIN over FTS table', () => {
+    const query = new Query(mockCollection, [
+      Q.where('searchable', Q.textMatches('hello world')),
+    ])
+    expect(encodeQuery(query)).toBe(
+      `select "tasks".* from "tasks" ` +
+      `where "tasks"."rowid" in (` +
+      `select "tasks_fts"."rowid" from "tasks_fts" ` +
+      `where "tasks_fts"."searchable" match 'hello world'` +
+      `) and "tasks"."_status" is not 'deleted'`
+    )
+  })
 })
